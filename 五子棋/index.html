@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        #panel {
+            width: 500px;
+            height: 500px;
+            border: 1px solid blue;
+            margin: 0 auto;
+        }
+
+        li {
+            list-style: none;
+            width: 20px;
+            height: 20px;
+            border: 1px solid black;
+            float: left;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <ul id="panel">
+
+        </ul>
+    </div>
+    <script>
+        let listItem = {
+            width: 20,
+            heigh: 20,
+            border: 1
+        }
+        let panel = document.getElementById('panel');
+        console.log(panel);
+        let fragment = document.createDocumentFragment();
+        let width = panel.offsetWidth;
+        let heigh = panel.offsetHeight;
+        let listItemWidth = listItem.width + 2 * listItem.border;
+        let listItemHeight = listItem.heigh + 2 * listItem.border;
+        let colums = parseInt(width/listItemWidth);
+        let lines = parseInt(heigh/listItemHeight);
+        let total = colums * lines;
+        for(let i = 0; i < total; i++){
+            let item = document.createElement('li');
+            fragment.appendChild(item);
+        }
+        panel.appendChild(fragment);
+        console.log(width);
+    </script>
+</body>
+
+</html>
