@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        #panel {
+            width: 500px;
+            height: 500px;
+            border: 1px solid blue;
+            margin: 0 auto;
+        }
+
+        li {
+            list-style: none;
+            width: 20px;
+            height: 20px;
+            border: 1px solid black;
+            float: left;
+            background-size: 20px 20px;
+        }
+        .x-mark{
+            background-image: url(./assets/x-mark.png);
+        }
+        .winner{
+            background-color: green;
+        }
+        .check-mark{
+            background-image: url(./assets/check-mark.png);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <ul id="panel">
+
+        </ul>
+    </div>
+    <script>
+        const X_MARK = 1;
+        const CHECK_MARK = 2;
+        const LENGTH = 5;
+        let ROLE = CHECK_MARK;
+        let chessboard = {
+            columns: 0,
+            rows: 0
+        };
+        let listItem = {
+            width: 20,
+            heigh: 20,
+            border: 1
+        }
+        let mapArray; // 映射所有的li标签
+        let Gobang = new Array();
+        let targetElement; // 鼠标每次点击的li标签
+        initChessboard();
+        
+        
+        function initChessboard(){
+            // 1.往ul标签 里面插入li标签
+            let panel = document.getElementById('panel');
+            let fragment = document.createDocumentFragment();
+            let width = panel.offsetWidth;
+            let heigh = panel.offsetHeight;
+            let listItemWidth = listItem.width + 2 * listItem.border;
+            let listItemHeight = listItem.heigh + 2 * listItem.border;
+            console.log(width,heigh, listItemWidth, listItemHeight);
+            chessboard.columns = parseInt(width/listItemWidth);
+            chessboard.rows = parseInt(heigh/listItemHeight);
+            let total = chessboard.columns * chessboard.rows;
+            for (let i = 0; i < total; i++) {
+                let item = document.createElement('li');
+                item.setAttribute('index', i);
+                fragment.appendChild(item);
+            }
+            panel.style.width = chessboard.columns * listItemWidth + 'px';
+            panel.style.height = chessboard.rows * listItemHeight + 'px';
+            
+            panel.appendChild(fragment);
+            
+            // 2.初识化映射数组
+            mapArray = new Array(chessboard.rows);
+            for (let i = 0; i < chessboard.rows; i++) {
+                mapArray[i] = new Array(chessboard.columns);
+                for (let j = 0; j < chessboard.columns; j++) {
+                    mapArray[i][j] = 0;
+                }
+            }
+
+            // 3.绑定mousedown事件
+            panel.addEventListener('mousedown', mousedownEvent);
+        }
+        function checkColumn(rowNum,columnNum){
+            // 垂直方向 以当前点击的元素为起点 先往上 再往下
+            Gobang = [];
+            Gobang.push(targetElement);
+
+            let loopTime = LENGTH - Gobang.length;
+            let subRowNum;
+            let subColumNum;
+            let subIndex;
+            let subElement;
+            let i;
+            for (i = 1; i <= loopTime; i++) {
+                subRowNum = rowNum - i;
+                if(subRowNum < 0){
+                    break;
+                }
+                subColumNum = columnNum;
+                subIndex = subRowNum * chessboard.rows + subColumNum;
+                if (mapArray[subRowNum][subColumNum] == ROLE) {
+                    subElement = panel.children[subIndex];
+                    Gobang.push(subElement);
+                }else{
+                    break;
+                }
+            }
+            loopTime = LENGTH - Gobang.length;
+            for (i = 1; i <= loopTime; i++) {
+                subRowNum = rowNum + i;
+                if (subRowNum > chessboard.rows) {
+                    break;
+                }
+                subColumNum = columnNum;
+                subIndex = subRowNum * chessboard.rows + subColumNum;
+                if (mapArray[subRowNum][subColumNum] == ROLE) {
+                    subElement = panel.children[subIndex];
+                    Gobang.push(subElement);
+                } else {
+                    break;
+                }
+            }
+            return isWin();
+        }
+        
+        function checkRow(rowNum, columnNum){
+            // 水平方向 以当前点击的元素为起点 先往左 再往右
+            Gobang = [];
+            Gobang.push(targetElement);
+
+            let loopTime = LENGTH - Gobang.length;
+            let subRowNum = rowNum;
+            let subColumNum;
+            let subIndex;
+            let subElement;
+            let i;
+            for (i = 1; i <= loopTime; i++) {
+                subColumNum = columnNum - i;
+                if (subColumNum < 0) {
+                    break;
+                }
+                subIndex = subRowNum * chessboard.rows + subColumNum;
+                if (mapArray[subRowNum][subColumNum] == ROLE) {
+                    subElement = panel.children[subIndex];
+                    Gobang.push(subElement);
+                } else {
+                    break;
+                }
+            }
+            loopTime = LENGTH - Gobang.length;
+            for (i = 1; i <= loopTime; i++) {
+                subColumNum = columnNum + i;
+                if (subColumNum > chessboard.columns) {
+                    break;
+                }
+                subIndex = subRowNum * chessboard.rows + subColumNum;
+                if (mapArray[subRowNum][subColumNum] == ROLE) {
+                    subElement = panel.children[subIndex];
+                    Gobang.push(subElement);
+                } else {
+                    break;
+                }
+            }
+            return isWin();
+        }
+        function checkMainDiagonal(rowNum, columnNum){
+            // 主对角线 以当前点击的元素为起点 先往右上角 再往左下角
+            Gobang = [];
+            Gobang.push(targetElement);
+
+            let loopTime = LENGTH - Gobang.length;
+            let subRowNum;
+            let subColumNum;
+            let subIndex;
+            let subElement;
+            let i;
+            for (i = 1; i <= loopTime; i++) {
+                subColumNum = columnNum + i;
+                subRowNum = rowNum - i;
+                if (subRowNum < 0 || subColumNum > chessboard.columns) {
+                    break;
+                }
+                subIndex = subRowNum * chessboard.rows + subColumNum;
+                if (mapArray[subRowNum][subColumNum] == ROLE) {
+                    subElement = panel.children[subIndex];
+                    Gobang.push(subElement);
+                } else {
+                    break;
+                }
+            }
+            loopTime = LENGTH - Gobang.length;
+            for (i = 1; i <= loopTime; i++) {
+                subColumNum = columnNum - i;
+                subRowNum = rowNum + i;
+                if (subRowNum > chessboard.rows || subColumNum < 0) {
+                    break;
+                }
+                subIndex = subRowNum * chessboard.rows + subColumNum;
+                if (mapArray[subRowNum][subColumNum] == ROLE) {
+                    subElement = panel.children[subIndex];
+                    Gobang.push(subElement);
+                } else {
+                    break;
+                }
+            }
+            return isWin();
+        }
+        function checkSubDiagonal(rowNum, columnNum) {
+                // 主对角线 以当前点击的元素为起点 先往右上角 再往左下角
+                Gobang = [];
+                Gobang.push(targetElement);
+
+                let loopTime = LENGTH - Gobang.length;
+                let subRowNum;
+                let subColumNum;
+                let subIndex;
+                let subElement;
+                let i;
+                for (i = 1; i <= loopTime; i++) {
+                    subColumNum = columnNum - i;
+                    subRowNum = rowNum - i;
+                    if (subRowNum < 0 || subColumNum < 0) {
+                        break;
+                    }
+                    subIndex = subRowNum * chessboard.rows + subColumNum;
+                    if (mapArray[subRowNum][subColumNum] == ROLE) {
+                        subElement = panel.children[subIndex];
+                        Gobang.push(subElement);
+                    } else {
+                        break;
+                    }
+                }
+                loopTime = LENGTH - Gobang.length;
+                for (i = 1; i <= loopTime; i++) {
+                    subColumNum = columnNum + i;
+                    subRowNum = rowNum + i;
+                    if (subRowNum > chessboard.rows || subColumNum > chessboard.columns) {
+                        break;
+                    }
+                    subIndex = subRowNum * chessboard.rows + subColumNum;
+                    if (mapArray[subRowNum][subColumNum] == ROLE) {
+                        subElement = panel.children[subIndex];
+                        Gobang.push(subElement);
+                    } else {
+                        break;
+                    }
+                }
+                return isWin();
+        }
+        function isWin() {
+            return Gobang.length == LENGTH ? true : false;
+        }
+        function mousedownEvent(event){
+            targetElement = event.target;
+            let index = targetElement.getAttribute('index');
+            let rowNum = parseInt(index / chessboard.columns);
+            let columnNum = index % chessboard.columns;
+            mapArray[rowNum][columnNum] = ROLE;
+            // console.log('index:', index, 'rowNum:', rowNum, 'columnNum:', columnNum);
+
+            checkColumn(rowNum,columnNum) || checkRow(rowNum, columnNum) || checkMainDiagonal(rowNum, columnNum) || checkSubDiagonal(rowNum, columnNum);
+            if (Gobang.length == LENGTH) {
+                for (let i = 0; i < LENGTH; i++) {
+                    let element = Gobang[i];
+                    element.classList.add('winner');
+                }
+            }
+
+            if (ROLE === X_MARK) {
+                targetElement.classList.add('x-mark');
+                ROLE = CHECK_MARK;
+            } else {
+                targetElement.classList.add('check-mark');
+                ROLE = X_MARK;
+            }
+        }
+    </script>
+</body>
+
+</html>
